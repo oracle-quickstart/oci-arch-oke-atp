@@ -167,10 +167,10 @@
       node_pool_size:
         type: number
         required: false
-        minimum: 1
+        minimum: 2
         maximum: 32768
         multipleOf: 1
-        default: 1
+        default: 3
         title: "OKE NodePool size"
         description: "Choose size of the OKE NodePool."
 

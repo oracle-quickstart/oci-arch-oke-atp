@@ -22,14 +22,6 @@ variable "OKE_NodePool_Subnet-CIDR" {
   default = "10.0.10.0/24"
 }
 
-#variable "OKE_NodePool_Subnet2-CIDR" {
-#  default = "10.0.11.0/24"
-#}
-
-#variable "OKE_NodePool_Subnet3-CIDR" {
-#  default = "10.0.12.0/24"
-#}
-
 variable "cluster_kube_config_token_version" {
   default = "2.0.0"
 }
