@@ -14,15 +14,14 @@
       - tenancy_ocid
       - region
 
-    - title: Required Configuration
+    - title: Required Configuration 
       visible: true  
       variables:
-      - ATP_password
-      - ATP_data_guard_enabled
       - compartment_ocid
       - availablity_domain_name
+      - deploy_ATP
 
-    - title: Optional Configuration
+    - title: Optional Configuration (OKE)
       visible: true
       variables:
       - VCN-CIDR
@@ -35,6 +34,14 @@
       - cluster_name
       - node_pool_size
       - node_pool_shape
+
+    - title: Optional Configuration (ATP)
+      visible: 
+        and:
+          - deploy_ATP
+      variables:
+      - ATP_password
+      - ATP_data_guard_enabled  
       - ATP_database_cpu_core_count
       - ATP_database_data_storage_size_in_tbs
       - ATP_database_db_name
@@ -74,7 +81,9 @@
       ATP_password:
         type: password
         required: true
-        visibile: true
+        visible: 
+          and:
+            - deploy_ATP
         title: "ATP Database Password for ADMIN user."
         description: "ATP Database Password for ADMIN user."
         minLength: 12
@@ -84,7 +93,9 @@
       ATP_data_guard_enabled:
         type: boolean
         required: true
-        visibile: true
+        visible: 
+          and:
+            - deploy_ATP
         default: false
         description: "ATP Database DataGuard Enabled"   
 
@@ -185,6 +196,9 @@
       
       ATP_database_cpu_core_count:
         type: number
+        visible: 
+          and:
+            - deploy_ATP
         required: false
         minimum: 1
         maximum: 128
@@ -194,6 +208,9 @@
 
       ATP_database_data_storage_size_in_tbs:
         type: number
+        visible: 
+          and:
+            - deploy_ATP
         required: false
         minimum: 1
         maximum: 128
@@ -203,12 +220,18 @@
 
       ATP_database_db_name:
         type: string
+        visible: 
+          and:
+            - deploy_ATP
         required: false
         default: "atpdb1"
         description: "ATP Database DBNAME"
 
       ATP_database_db_version:
         type: enum
+        visible: 
+          and:
+            - deploy_ATP
         required: false
         default: "19c"
         description: "ATP Database Version"
@@ -217,12 +240,18 @@
 
       ATP_database_display_name:
         type: string
+        visible: 
+          and:
+            - deploy_ATP
         required: false
         default: "ATPDB"
         description: "ATP Database Display Name"
 
       ATP_database_license_model:
         type: enum
+        visible: 
+          and:
+            - deploy_ATP
         required: false
         default: "LICENSE_INCLUDED"
         description: "ATP Database License Model"
@@ -232,23 +261,35 @@
 
       ATP_tde_wallet_zip_file:
         type: string
+        visible: 
+          and:
+            - deploy_ATP
         required: false
         default: "tde_wallet_ATPdb1.zip"
         description: "ATP Database TDE Wallet ZIP File"
       
       ATP_private_endpoint_label:
         type: string
+        visible: 
+          and:
+            - deploy_ATP
         required: false
         default: "ATPPrivateEndpoint"
         description: "ATP Database Private Endpoint Label"
 
       ATP_database_freeform_tags:
         type: string
+        visible: 
+          and:
+            - deploy_ATP
         required: false
         description: "ATP Database Freeform Tags"
 
       ATP_database_defined_tags_value:
         type: string
+        visible: 
+          and:
+            - deploy_ATP
         required: false
         description: "ATP Database Defined Tags"
 

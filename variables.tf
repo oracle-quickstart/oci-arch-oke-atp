@@ -48,7 +48,11 @@ variable "node_pool_shape" {
 }
 
 variable "cluster_name" {
-  default = "OKECluster"
+  default = "msdataworkshopcluster"
+}
+
+variable "deploy_ATP" {
+  default = true
 }
 
 variable "ATP_password" {
