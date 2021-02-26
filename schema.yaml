@@ -21,7 +21,7 @@
       - availablity_domain_name
       - deploy_ATP
 
-    - title: Optional Configuration (OKE)
+    - title: Kubernetes Clusters Configuration
       visible: true
       variables:
       - VCN-CIDR
@@ -35,7 +35,7 @@
       - node_pool_size
       - node_pool_shape
 
-    - title: Optional Configuration (ATP)
+    - title: Autonomous Transaction Processing
       visible: 
         and:
           - deploy_ATP
