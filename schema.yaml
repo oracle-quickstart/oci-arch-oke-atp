@@ -78,6 +78,13 @@
         dependsOn:
           compartmentId: ${compartment_ocid}
 
+      deploy_ATP:
+        required: true
+        visibile: true
+        type: boolean
+        default: true
+        description: "Check the box to deploy Autonomous Transaction Processing DB"
+        
       ATP_password:
         type: password
         required: true
