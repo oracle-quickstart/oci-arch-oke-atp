@@ -83,8 +83,9 @@
         visibile: true
         type: boolean
         default: true
+        title: "Deploy ATP?"
         description: "Check the box to deploy Autonomous Transaction Processing DB"
-        
+
       ATP_password:
         type: password
         required: true
