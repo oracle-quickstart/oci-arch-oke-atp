@@ -13,6 +13,8 @@
       variables:
       - tenancy_ocid
       - region
+      - release
+      - campaign
 
     - title: Required Configuration 
       visible: true  
@@ -300,6 +302,18 @@
             - deploy_ATP
         required: false
         description: "ATP Database Defined Tags"
+
+      release:
+        type: string
+        required: false
+        visible: false
+        title: "Reference Architecture Release (OCI Architecture Center)"
+
+      campaign:
+        type: string
+        required: false
+        visible: false
+        title: "Reference Architecture Campaign (OCI Architecture Center)"
 
     outputs:
 

@@ -5,12 +5,17 @@ resource "oci_core_vcn" "OKE_ATP_VCN" {
   cidr_block     = var.VCN-CIDR
   compartment_id = var.compartment_ocid
   display_name   = "OKE_ATP_VCN"
+  defined_tags   = { "${oci_identity_tag_namespace.ArchitectureCenterTagNamespace.name}.${oci_identity_tag.ArchitectureCenterTag1.name}" = var.release 
+                     "${oci_identity_tag_namespace.ArchitectureCenterTagNamespace.name}.${oci_identity_tag.ArchitectureCenterTag2.name}" = var.campaign }
 }
 
 resource "oci_core_internet_gateway" "OKE_ATP_IGW" {
   compartment_id = var.compartment_ocid
   display_name   = "OKE_ATP_IGW"
   vcn_id         = oci_core_vcn.OKE_ATP_VCN.id
+  defined_tags   = { "${oci_identity_tag_namespace.ArchitectureCenterTagNamespace.name}.${oci_identity_tag.ArchitectureCenterTag1.name}" = var.release 
+                     "${oci_identity_tag_namespace.ArchitectureCenterTagNamespace.name}.${oci_identity_tag.ArchitectureCenterTag2.name}" = var.campaign }
+
 }
 
 
@@ -24,6 +29,8 @@ resource "oci_core_route_table" "OKE_ATP_VCN_route_table_via_IGW" {
     destination_type  = "CIDR_BLOCK"
     network_entity_id =  oci_core_internet_gateway.OKE_ATP_IGW.id
   }
+  defined_tags   = { "${oci_identity_tag_namespace.ArchitectureCenterTagNamespace.name}.${oci_identity_tag.ArchitectureCenterTag1.name}" = var.release 
+                     "${oci_identity_tag_namespace.ArchitectureCenterTagNamespace.name}.${oci_identity_tag.ArchitectureCenterTag2.name}" = var.campaign }
 }
 
 
@@ -43,6 +50,8 @@ resource "oci_core_security_list" "OKE_ATP_LB_SecList" {
         source = "0.0.0.0/0"
         stateless = true
     }
+    defined_tags   = { "${oci_identity_tag_namespace.ArchitectureCenterTagNamespace.name}.${oci_identity_tag.ArchitectureCenterTag1.name}" = var.release 
+                       "${oci_identity_tag_namespace.ArchitectureCenterTagNamespace.name}.${oci_identity_tag.ArchitectureCenterTag2.name}" = var.campaign }
 }
 
 resource "oci_core_security_list" "OKE_ATP_Worker_SecList" {
@@ -115,6 +124,9 @@ resource "oci_core_security_list" "OKE_ATP_Worker_SecList" {
             max = 32767
         }
     }
+    defined_tags   = { "${oci_identity_tag_namespace.ArchitectureCenterTagNamespace.name}.${oci_identity_tag.ArchitectureCenterTag1.name}" = var.release 
+                       "${oci_identity_tag_namespace.ArchitectureCenterTagNamespace.name}.${oci_identity_tag.ArchitectureCenterTag2.name}" = var.campaign }
+
 }
 
 resource "oci_core_subnet" "OKE_Cluster_Subnet" {
@@ -125,6 +137,9 @@ resource "oci_core_subnet" "OKE_Cluster_Subnet" {
 
   security_list_ids = [oci_core_vcn.OKE_ATP_VCN.default_security_list_id, oci_core_security_list.OKE_ATP_LB_SecList.id]
   route_table_id    = oci_core_route_table.OKE_ATP_VCN_route_table_via_IGW.id
+  
+  defined_tags      = { "${oci_identity_tag_namespace.ArchitectureCenterTagNamespace.name}.${oci_identity_tag.ArchitectureCenterTag1.name}" = var.release 
+                        "${oci_identity_tag_namespace.ArchitectureCenterTagNamespace.name}.${oci_identity_tag.ArchitectureCenterTag2.name}" = var.campaign }
 }
 
 resource "oci_core_subnet" "OKE_NodePool_Subnet" {
@@ -135,5 +150,9 @@ resource "oci_core_subnet" "OKE_NodePool_Subnet" {
 
   security_list_ids = [oci_core_vcn.OKE_ATP_VCN.default_security_list_id, oci_core_security_list.OKE_ATP_Worker_SecList.id]
   route_table_id    = oci_core_route_table.OKE_ATP_VCN_route_table_via_IGW.id
+
+  defined_tags   = { "${oci_identity_tag_namespace.ArchitectureCenterTagNamespace.name}.${oci_identity_tag.ArchitectureCenterTag1.name}" = var.release 
+                     "${oci_identity_tag_namespace.ArchitectureCenterTagNamespace.name}.${oci_identity_tag.ArchitectureCenterTag2.name}" = var.campaign }
+
 }
 

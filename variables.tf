@@ -2,13 +2,22 @@
 ## All rights reserved. The Universal Permissive License (UPL), Version 1.0 as shown at http://oss.oracle.com/licenses/upl
 
 variable "tenancy_ocid" {}
-variable "user_ocid" {}
-variable "fingerprint" {}
-variable "private_key_path" {}
+#variable "user_ocid" {}
+#variable "fingerprint" {}
+#variable "private_key_path" {}
 variable "compartment_ocid" {}
 variable "region" {}
 variable "availablity_domain_name" {}
 
+variable "release" {
+  description = "Reference Architecture Release (OCI Architecture Center)"
+  default     = "1.0"
+}
+
+variable "campaign" {
+  description = "Reference Architecture Campaign (OCI Architecture Center)"
+  default     = "March2021"
+}
 
 variable "VCN-CIDR" {
   default = "10.0.0.0/16"

@@ -52,4 +52,5 @@ resource "oci_containerengine_node_pool" "OKENodePool" {
   }
 
   ssh_public_key      = tls_private_key.public_private_key_pair.public_key_openssh 
+
 }
