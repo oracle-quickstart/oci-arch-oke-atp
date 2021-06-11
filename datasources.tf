@@ -10,11 +10,20 @@ data "oci_containerengine_node_pool_option" "OKE_Cluster_NodePool_Option" {
 }
 
 locals {
-  all_sources = data.oci_containerengine_node_pool_option.OKE_Cluster_NodePool_Option.sources
-  oracle_linux_images = [for source in local.all_sources : source.image_id if length(regexall("Oracle-Linux-[0-9]*.[0-9]*-20[0-9]*",source.source_name)) > 0]
+  all_sources         = data.oci_containerengine_node_pool_option.OKE_Cluster_NodePool_Option.sources
+  oracle_linux_images = [for source in local.all_sources : source.image_id if length(regexall("Oracle-Linux-[0-9]*.[0-9]*-20[0-9]*", source.source_name)) > 0]
 }
 
 data "oci_containerengine_cluster_kube_config" "KubeConfig" {
-  cluster_id = oci_containerengine_cluster.OKECluster.id
+  cluster_id    = oci_containerengine_cluster.OKECluster.id
   token_version = var.cluster_kube_config_token_version
+}
+
+data "oci_identity_region_subscriptions" "home_region_subscriptions" {
+  tenancy_id = var.tenancy_ocid
+
+  filter {
+    name   = "is_home_region"
+    values = [true]
+  }
 }

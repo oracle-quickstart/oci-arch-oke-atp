@@ -11,12 +11,7 @@ variable "availablity_domain_name" {}
 
 variable "release" {
   description = "Reference Architecture Release (OCI Architecture Center)"
-  default     = "1.0"
-}
-
-variable "campaign" {
-  description = "Reference Architecture Campaign (OCI Architecture Center)"
-  default     = "March2021"
+  default     = "1.1"
 }
 
 variable "VCN-CIDR" {
@@ -49,11 +44,19 @@ variable "node_pool_size" {
 
 variable "kubernetes_version" {
   default = "v1.18.10"
-#   default = "v1.17.13" 
+  #   default = "v1.17.13" 
 }
 
 variable "node_pool_shape" {
- default = "VM.Standard.E2.1"
+  default = "VM.Standard.E2.1"
+}
+
+variable "node_pool_flex_shape_memory" {
+  default = 10
+}
+
+variable "node_pool_flex_shape_ocpus" {
+  default = 1
 }
 
 variable "cluster_name" {
@@ -110,6 +113,21 @@ variable "ATP_private_endpoint_label" {
   default = "ATPPrivateEndpoint"
 }
 
-variable  "ATP_data_guard_enabled" {
-  default = false 
+variable "ATP_data_guard_enabled" {
+  default = false
+}
+
+# Dictionary Locals
+locals {
+  compute_flexible_shapes = [
+    "VM.Standard.E3.Flex",
+    "VM.Standard.E4.Flex",
+    "VM.Standard.A1.Flex",
+    "VM.Optimized3.Flex"
+  ]
+}
+
+# Checks if is using Flexible Compute Shapes
+locals {
+  is_flexible_node_shape = contains(local.compute_flexible_shapes, var.node_pool_shape)
 }

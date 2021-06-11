@@ -11,10 +11,9 @@ resource "oci_database_autonomous_database" "ATP_database" {
   db_version               = var.ATP_database_db_version
   display_name             = var.ATP_database_display_name
   freeform_tags            = var.ATP_database_freeform_tags
-  license_model            = var.ATP_database_license_model  
+  license_model            = var.ATP_database_license_model
   is_data_guard_enabled    = var.ATP_data_guard_enabled
-  defined_tags             = { "${oci_identity_tag_namespace.ArchitectureCenterTagNamespace.name}.${oci_identity_tag.ArchitectureCenterTag1.name}" = var.release 
-                               "${oci_identity_tag_namespace.ArchitectureCenterTagNamespace.name}.${oci_identity_tag.ArchitectureCenterTag2.name}" = var.campaign }
+  defined_tags             = { "${oci_identity_tag_namespace.ArchitectureCenterTagNamespace.name}.${oci_identity_tag.ArchitectureCenterTag.name}" = var.release }
 }
 
 resource "random_string" "wallet_password" {

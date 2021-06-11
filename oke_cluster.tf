@@ -2,7 +2,7 @@
 ## All rights reserved. The Universal Permissive License (UPL), Version 1.0 as shown at http://oss.oracle.com/licenses/upl
 
 resource "oci_containerengine_cluster" "OKECluster" {
-#  depends_on         = [oci_identity_policy.OKEPolicy1]
+  #  depends_on         = [oci_identity_policy.OKEPolicy1]
   compartment_id     = var.compartment_ocid
   kubernetes_version = var.kubernetes_version
   name               = var.cluster_name
@@ -24,26 +24,34 @@ resource "oci_containerengine_cluster" "OKECluster" {
 }
 
 resource "oci_containerengine_node_pool" "OKENodePool" {
-#  depends_on         = [oci_identity_policy.OKEPolicy1]
+  #  depends_on         = [oci_identity_policy.OKEPolicy1]
   cluster_id         = oci_containerengine_cluster.OKECluster.id
   compartment_id     = var.compartment_ocid
   kubernetes_version = var.kubernetes_version
   name               = "OKENodePool"
   node_shape         = var.node_pool_shape
 
+  dynamic "node_shape_config" {
+    for_each = local.is_flexible_node_shape ? [1] : []
+    content {
+      memory_in_gbs = var.node_pool_flex_shape_memory
+      ocpus         = var.node_pool_flex_shape_ocpus
+    }
+  }
+
   node_source_details {
     #image_id = data.oci_core_images.InstanceImageOCID.images[0].id
-    image_id = local.oracle_linux_images.0
+    image_id    = local.oracle_linux_images.0
     source_type = "IMAGE"
   }
 
   node_config_details {
-    size      = var.node_pool_size
+    size = var.node_pool_size
 
     placement_configs {
       availability_domain = var.availablity_domain_name
       subnet_id           = oci_core_subnet.OKE_NodePool_Subnet.id
-    }  
+    }
   }
 
   initial_node_labels {
@@ -51,6 +59,6 @@ resource "oci_containerengine_node_pool" "OKENodePool" {
     value = "value"
   }
 
-  ssh_public_key      = tls_private_key.public_private_key_pair.public_key_openssh 
+  ssh_public_key = tls_private_key.public_private_key_pair.public_key_openssh
 
 }
