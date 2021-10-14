@@ -1,4 +1,4 @@
-## Copyright © 2020, Oracle and/or its affiliates. 
+## Copyright © 2021, Oracle and/or its affiliates. 
 ## All rights reserved. The Universal Permissive License (UPL), Version 1.0 as shown at http://oss.oracle.com/licenses/upl
 
     title: "Create Kubernetes Engine Cluster with Autonomous Database in Oracle Cloud Infrastructure"
@@ -15,6 +15,8 @@
       - region
       - release
       - campaign
+      - instance_os
+      - linux_os_version
 
     - title: Required Configuration 
       visible: true  
@@ -30,7 +32,8 @@
             - show_advanced
       variables:
       - VCN-CIDR
-      - OKE_Cluster_Subnet-CIDR
+      - OKE_LB_Subnet-CIDR
+      - OKE_API_EndPoint_Subnet-CIDR
       - OKE_NodePool_Subnet-CIDR
       - cluster_kube_config_token_version
       - cluster_options_kubernetes_network_config_pods_cidr
@@ -132,13 +135,22 @@
         description: "Choose VCN CIDR for your OKE deployments."
         default: "10.0.0.0/16"
 
-      OKE_Cluster_Subnet-CIDR:
+      OKE_LB_Subnet-CIDR:
         type: string
         visible: true
         required: false
         pattern: "^(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]).(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]).(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]).(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\\/(3[0-2]|[1-2]?[0-9])$"
-        title: "OKE Cluster Subnet CIDR"
-        description: "Choose OKE Cluster Subnet CIDR."
+        title: "OKE LB Subnet CIDR"
+        description: "Choose OKE LoadBalancer Subnet CIDR."
+        default: "10.0.10.0/24"
+
+      OKE_API_EndPoint_Subnet-CIDR:
+        type: string
+        visible: true
+        required: false
+        pattern: "^(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]).(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]).(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]).(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\\/(3[0-2]|[1-2]?[0-9])$"
+        title: "OKE API EndPoint Subnet CIDR"
+        description: "Choose OKE API EndPoint Subnet CIDR."
         default: "10.0.20.0/24"
 
       OKE_NodePool_Subnet-CIDR:
@@ -148,7 +160,7 @@
         pattern: "^(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]).(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]).(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]).(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\\/(3[0-2]|[1-2]?[0-9])$"
         title: "OKE NodePool Subnet CIDR"
         description: "Choose OKE NodePool Subnet CIDR."
-        default: "10.0.10.0/24"
+        default: "10.0.30.0/24"
 
       cluster_kube_config_token_version:
         type: enum
@@ -182,13 +194,14 @@
         required: false
         title: "Kubernetes Version"
         description: "Choose Kubernetes Version."
-        default: "v1.18.10"
+        default: "v1.20.11"
         enum:
-          - "v1.18.10" 
-          - "v1.17.13"
-          - "v1.17.9"
-          - "v1.16.15"
-          - "v1.16.8"  
+          - "v1.20.11"
+          - "v1.20.8"
+          - "v1.19.15"
+          - "v1.19.12"
+          - "v1.19.7"          
+          - "v1.18.10"  
 
       cluster_name:
         type: string
@@ -212,7 +225,7 @@
         required: false
         title: "Shape for OKE NodePool"
         description: "Choose shape for compute instances in OKE NodePool."
-        default: "VM.Standard2.1"
+        default: "VM.Standard.E3.Flex"
         dependsOn:
           compartmentId: ${compartment_ocid}      
 
@@ -296,7 +309,7 @@
           and:
             - deploy_ATP
         required: false
-        default: "atpdb1"
+        default: "okeatp"
         description: "ATP Database DBNAME"
 
       ATP_database_db_version:
@@ -316,7 +329,7 @@
           and:
             - deploy_ATP
         required: false
-        default: "ATPDB"
+        default: "OKEATP"
         description: "ATP Database Display Name"
 
       ATP_database_license_model:
