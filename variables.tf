@@ -7,23 +7,29 @@ variable "fingerprint" {}
 variable "private_key_path" {}
 variable "compartment_ocid" {}
 variable "region" {}
-variable "availablity_domain_name" {}
+variable "availablity_domain_name" {
+  default = ""
+}
 
 variable "release" {
   description = "Reference Architecture Release (OCI Architecture Center)"
-  default     = "1.1"
+  default     = "1.2"
 }
 
 variable "VCN-CIDR" {
   default = "10.0.0.0/16"
 }
 
-variable "OKE_Cluster_Subnet-CIDR" {
+variable "OKE_LB_Subnet-CIDR" {
+  default = "10.0.10.0/24"
+}
+
+variable "OKE_API_EndPoint_Subnet-CIDR" {
   default = "10.0.20.0/24"
 }
 
 variable "OKE_NodePool_Subnet-CIDR" {
-  default = "10.0.10.0/24"
+  default = "10.0.30.0/24"
 }
 
 variable "cluster_kube_config_token_version" {
@@ -43,16 +49,25 @@ variable "node_pool_size" {
 }
 
 variable "kubernetes_version" {
-  default = "v1.18.10"
-  #   default = "v1.17.13" 
+  default = "v1.20.11"
 }
 
 variable "node_pool_shape" {
-  default = "VM.Standard.E2.1"
+  default = "VM.Standard.E3.Flex"
+}
+
+/*
+variable "instance_os" {
+  default = "Oracle Linux"
+}
+*/
+
+variable "linux_os_version" {
+  default = "7.9"
 }
 
 variable "node_pool_flex_shape_memory" {
-  default = 10
+  default = 6
 }
 
 variable "node_pool_flex_shape_ocpus" {
@@ -80,7 +95,7 @@ variable "ATP_database_data_storage_size_in_tbs" {
 }
 
 variable "ATP_database_db_name" {
-  default = "aTFdb"
+  default = "OKEATP"
 }
 
 variable "ATP_database_db_version" {
@@ -92,7 +107,7 @@ variable "ATP_database_defined_tags_value" {
 }
 
 variable "ATP_database_display_name" {
-  default = "ATP"
+  default = "OKEATP"
 }
 
 variable "ATP_database_freeform_tags" {

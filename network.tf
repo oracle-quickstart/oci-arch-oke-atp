@@ -1,100 +1,186 @@
 ## Copyright © 2021, Oracle and/or its affiliates. 
 ## All rights reserved. The Universal Permissive License (UPL), Version 1.0 as shown at http://oss.oracle.com/licenses/upl
 
-resource "oci_core_vcn" "OKE_ATP_VCN" {
+resource "oci_core_vcn" "OKE_ATP_vcn" {
   cidr_block     = var.VCN-CIDR
   compartment_id = var.compartment_ocid
-  display_name   = "OKE_ATP_VCN"
-  defined_tags   = { "${oci_identity_tag_namespace.ArchitectureCenterTagNamespace.name}.${oci_identity_tag.ArchitectureCenterTag.name}" = var.release }
+  display_name   = "OKE_ATP_vcn"
 }
 
-resource "oci_core_internet_gateway" "OKE_ATP_IGW" {
+resource "oci_core_service_gateway" "OKE_ATP_sg" {
   compartment_id = var.compartment_ocid
-  display_name   = "OKE_ATP_IGW"
-  vcn_id         = oci_core_vcn.OKE_ATP_VCN.id
-  defined_tags   = { "${oci_identity_tag_namespace.ArchitectureCenterTagNamespace.name}.${oci_identity_tag.ArchitectureCenterTag.name}" = var.release }
-
+  display_name   = "OKE_ATP_sg"
+  vcn_id         = oci_core_vcn.OKE_ATP_vcn.id
+  services {
+    service_id = lookup(data.oci_core_services.AllOCIServices.services[0], "id")
+  }
 }
 
-
-resource "oci_core_route_table" "OKE_ATP_VCN_route_table_via_IGW" {
+resource "oci_core_internet_gateway" "OKE_ATP_igw" {
   compartment_id = var.compartment_ocid
-  vcn_id         = oci_core_vcn.OKE_ATP_VCN.id
-  display_name   = "OKE_ATP_VCN_route_table_via_IGW"
+  display_name   = "OKE_ATP_igw"
+  vcn_id         = oci_core_vcn.OKE_ATP_vcn.id
+}
+
+resource "oci_core_route_table" "OKE_ATP_rt_via_igw" {
+  compartment_id = var.compartment_ocid
+  vcn_id         = oci_core_vcn.OKE_ATP_vcn.id
+  display_name   = "OKE_ATP_rt_via_igw_and_sg"
 
   route_rules {
     destination       = "0.0.0.0/0"
     destination_type  = "CIDR_BLOCK"
-    network_entity_id = oci_core_internet_gateway.OKE_ATP_IGW.id
+    network_entity_id = oci_core_internet_gateway.OKE_ATP_igw.id
   }
-  defined_tags = { "${oci_identity_tag_namespace.ArchitectureCenterTagNamespace.name}.${oci_identity_tag.ArchitectureCenterTag.name}" = var.release }
+
 }
 
-
-resource "oci_core_security_list" "OKE_ATP_LB_SecList" {
+resource "oci_core_security_list" "OKE_ATP_api_endpoint_subnet_sec_list" {
   compartment_id = var.compartment_ocid
-  display_name   = "OKE_ATP_LB_SecList"
-  vcn_id         = oci_core_vcn.OKE_ATP_VCN.id
+  display_name   = "OKE_ATP_api_endpoint_subnet_sec_list"
+  vcn_id         = oci_core_vcn.OKE_ATP_vcn.id
+
+  # egress_security_rules
 
   egress_security_rules {
-    protocol    = "6"
+    protocol         = "6"
+    destination_type = "CIDR_BLOCK"
+    destination      = var.OKE_NodePool_Subnet-CIDR
+  }
+
+  egress_security_rules {
+    protocol         = 1
+    destination_type = "CIDR_BLOCK"
+    destination      = var.OKE_NodePool_Subnet-CIDR
+
+    icmp_options {
+      type = 3
+      code = 4
+    }
+  }
+
+  egress_security_rules {
+    protocol         = "6"
+    destination_type = "SERVICE_CIDR_BLOCK"
+    destination      = lookup(data.oci_core_services.AllOCIServices.services[0], "cidr_block")
+
+    tcp_options {
+      min = 443
+      max = 443
+    }
+  }
+
+  ingress_security_rules {
+    protocol = "6"
+    source   = var.OKE_NodePool_Subnet-CIDR
+
+    tcp_options {
+      min = 6443
+      max = 6443
+    }
+  }
+
+  ingress_security_rules {
+    protocol = "6"
+    source   = var.OKE_NodePool_Subnet-CIDR
+
+    tcp_options {
+      min = 12250
+      max = 12250
+    }
+  }
+
+  ingress_security_rules {
+    protocol = "6"
+    source   = "0.0.0.0/0"
+
+    tcp_options {
+      min = 6443
+      max = 6443
+    }
+  }
+
+  ingress_security_rules {
+    protocol = 1
+    source   = var.OKE_NodePool_Subnet-CIDR
+
+    icmp_options {
+      type = 3
+      code = 4
+    }
+  }
+
+}
+
+resource "oci_core_security_list" "OKE_ATP_nodepool_subnet_sec_list" {
+  compartment_id = var.compartment_ocid
+  display_name   = "OKE_ATP_nodepool_subnet_sec_list"
+  vcn_id         = oci_core_vcn.OKE_ATP_vcn.id
+
+  egress_security_rules {
+    protocol         = "All"
+    destination_type = "CIDR_BLOCK"
+    destination      = var.OKE_NodePool_Subnet-CIDR
+  }
+
+  egress_security_rules {
+    protocol    = 1
     destination = "0.0.0.0/0"
-    stateless   = true
-  }
 
-  ingress_security_rules {
-    protocol  = "6"
-    source    = "0.0.0.0/0"
-    stateless = true
+    icmp_options {
+      type = 3
+      code = 4
+    }
   }
-  defined_tags = { "${oci_identity_tag_namespace.ArchitectureCenterTagNamespace.name}.${oci_identity_tag.ArchitectureCenterTag.name}" = var.release }
-}
-
-resource "oci_core_security_list" "OKE_ATP_Worker_SecList" {
-  compartment_id = var.compartment_ocid
-  display_name   = "OKE_ATP_Worker_SecList"
-  vcn_id         = oci_core_vcn.OKE_ATP_VCN.id
 
   egress_security_rules {
-    protocol    = "All"
-    stateless   = true
-    destination = var.OKE_NodePool_Subnet-CIDR
+    protocol         = "6"
+    destination_type = "SERVICE_CIDR_BLOCK"
+    destination      = lookup(data.oci_core_services.AllOCIServices.services[0], "cidr_block")
   }
 
-  #    egress_security_rules {
-  #        protocol = "All"
-  #        stateless = true
-  #        destination = var.OKE_NodePool_Subnet2-CIDR
-  #    }
+  egress_security_rules {
+    protocol         = "6"
+    destination_type = "CIDR_BLOCK"
+    destination      = var.OKE_API_EndPoint_Subnet-CIDR
 
-  #    egress_security_rules {
-  #        protocol = "All"
-  #        stateless = true
-  #        destination = var.OKE_NodePool_Subnet3-CIDR
-  #    }
-
-  ingress_security_rules {
-    protocol  = "All"
-    source    = var.OKE_NodePool_Subnet-CIDR
-    stateless = true
+    tcp_options {
+      min = 6443
+      max = 6443
+    }
   }
 
-  #    ingress_security_rules {
-  #        protocol = "All"
-  #        source = var.OKE_NodePool_Subnet2-CIDR
-  #        stateless = true
-  #    }
+  egress_security_rules {
+    protocol         = "6"
+    destination_type = "CIDR_BLOCK"
+    destination      = var.OKE_API_EndPoint_Subnet-CIDR
 
-  #    ingress_security_rules {
-  #        protocol = "All"
-  #        source = var.OKE_NodePool_Subnet3-CIDR
-  #        stateless = true
-  #    }
+    tcp_options {
+      min = 12250
+      max = 12250
+    }
+  }
+
+  egress_security_rules {
+    protocol         = "6"
+    destination_type = "CIDR_BLOCK"
+    destination      = "0.0.0.0/0"
+  }
 
   ingress_security_rules {
-    protocol  = "1"
-    source    = "0.0.0.0/0"
-    stateless = false
+    protocol = "All"
+    source   = var.OKE_NodePool_Subnet-CIDR
+  }
+
+  ingress_security_rules {
+    protocol = "6"
+    source   = var.OKE_API_EndPoint_Subnet-CIDR
+  }
+
+  ingress_security_rules {
+    protocol = 1
+    source   = "0.0.0.0/0"
+
     icmp_options {
       type = 3
       code = 4
@@ -102,50 +188,43 @@ resource "oci_core_security_list" "OKE_ATP_Worker_SecList" {
   }
 
   ingress_security_rules {
-    protocol  = "6"
-    source    = "0.0.0.0/0"
-    stateless = false
+    protocol = "6"
+    source   = "0.0.0.0/0"
+
     tcp_options {
       min = 22
       max = 22
     }
   }
 
-  ingress_security_rules {
-    protocol  = "6"
-    source    = "0.0.0.0/0"
-    stateless = false
-    tcp_options {
-      min = 30000
-      max = 32767
-    }
-  }
-  defined_tags = { "${oci_identity_tag_namespace.ArchitectureCenterTagNamespace.name}.${oci_identity_tag.ArchitectureCenterTag.name}" = var.release }
-
 }
 
-resource "oci_core_subnet" "OKE_Cluster_Subnet" {
-  cidr_block     = var.OKE_Cluster_Subnet-CIDR
+resource "oci_core_subnet" "OKE_ATP_api_endpoint_subnet" {
+  cidr_block        = var.OKE_API_EndPoint_Subnet-CIDR
+  compartment_id    = var.compartment_ocid
+  vcn_id            = oci_core_vcn.OKE_ATP_vcn.id
+  display_name      = "OKE_ATP_api_endpoint_subnet"
+  security_list_ids = [oci_core_vcn.OKE_ATP_vcn.default_security_list_id, oci_core_security_list.OKE_ATP_api_endpoint_subnet_sec_list.id]
+  route_table_id    = oci_core_route_table.OKE_ATP_rt_via_igw.id
+}
+
+resource "oci_core_subnet" "OKE_ATP_lb_subnet" {
+  cidr_block     = var.OKE_LB_Subnet-CIDR
   compartment_id = var.compartment_ocid
-  vcn_id         = oci_core_vcn.OKE_ATP_VCN.id
-  display_name   = "OKE_Cluster_Subnet"
+  vcn_id         = oci_core_vcn.OKE_ATP_vcn.id
+  display_name   = "OKE_ATP_lb_subnet"
 
-  security_list_ids = [oci_core_vcn.OKE_ATP_VCN.default_security_list_id, oci_core_security_list.OKE_ATP_LB_SecList.id]
-  route_table_id    = oci_core_route_table.OKE_ATP_VCN_route_table_via_IGW.id
-
-  defined_tags = { "${oci_identity_tag_namespace.ArchitectureCenterTagNamespace.name}.${oci_identity_tag.ArchitectureCenterTag.name}" = var.release }
+  security_list_ids = [oci_core_vcn.OKE_ATP_vcn.default_security_list_id]
+  route_table_id    = oci_core_route_table.OKE_ATP_rt_via_igw.id
 }
 
-resource "oci_core_subnet" "OKE_NodePool_Subnet" {
-  cidr_block     = var.OKE_NodePool_Subnet-CIDR
-  compartment_id = var.compartment_ocid
-  vcn_id         = oci_core_vcn.OKE_ATP_VCN.id
-  display_name   = "OKE_NodePool_Subnet"
-
-  security_list_ids = [oci_core_vcn.OKE_ATP_VCN.default_security_list_id, oci_core_security_list.OKE_ATP_Worker_SecList.id]
-  route_table_id    = oci_core_route_table.OKE_ATP_VCN_route_table_via_IGW.id
-
-  defined_tags = { "${oci_identity_tag_namespace.ArchitectureCenterTagNamespace.name}.${oci_identity_tag.ArchitectureCenterTag.name}" = var.release }
-
+resource "oci_core_subnet" "OKE_ATP_nodepool_subnet" {
+  cidr_block        = var.OKE_NodePool_Subnet-CIDR
+  compartment_id    = var.compartment_ocid
+  vcn_id            = oci_core_vcn.OKE_ATP_vcn.id
+  display_name      = "OKE_ATP_nodepool_subnet"
+  security_list_ids = [oci_core_vcn.OKE_ATP_vcn.default_security_list_id, oci_core_security_list.OKE_ATP_nodepool_subnet_sec_list.id]
+  route_table_id    = oci_core_route_table.OKE_ATP_rt_via_igw.id
 }
+
 

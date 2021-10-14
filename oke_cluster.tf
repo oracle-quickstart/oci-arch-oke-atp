@@ -1,64 +1,28 @@
 ## Copyright © 2021, Oracle and/or its affiliates. 
 ## All rights reserved. The Universal Permissive License (UPL), Version 1.0 as shown at http://oss.oracle.com/licenses/upl
 
-resource "oci_containerengine_cluster" "OKECluster" {
-  #  depends_on         = [oci_identity_policy.OKEPolicy1]
-  compartment_id     = var.compartment_ocid
-  kubernetes_version = var.kubernetes_version
-  name               = var.cluster_name
-  vcn_id             = oci_core_vcn.OKE_ATP_VCN.id
-
-  options {
-    service_lb_subnet_ids = [oci_core_subnet.OKE_Cluster_Subnet.id]
-
-    add_ons {
-      is_kubernetes_dashboard_enabled = true
-      is_tiller_enabled               = true
-    }
-
-    kubernetes_network_config {
-      pods_cidr     = var.cluster_options_kubernetes_network_config_pods_cidr
-      services_cidr = var.cluster_options_kubernetes_network_config_services_cidr
-    }
-  }
-}
-
-resource "oci_containerengine_node_pool" "OKENodePool" {
-  #  depends_on         = [oci_identity_policy.OKEPolicy1]
-  cluster_id         = oci_containerengine_cluster.OKECluster.id
-  compartment_id     = var.compartment_ocid
-  kubernetes_version = var.kubernetes_version
-  name               = "OKENodePool"
-  node_shape         = var.node_pool_shape
-
-  dynamic "node_shape_config" {
-    for_each = local.is_flexible_node_shape ? [1] : []
-    content {
-      memory_in_gbs = var.node_pool_flex_shape_memory
-      ocpus         = var.node_pool_flex_shape_ocpus
-    }
-  }
-
-  node_source_details {
-    #image_id = data.oci_core_images.InstanceImageOCID.images[0].id
-    image_id    = local.oracle_linux_images.0
-    source_type = "IMAGE"
-  }
-
-  node_config_details {
-    size = var.node_pool_size
-
-    placement_configs {
-      availability_domain = var.availablity_domain_name
-      subnet_id           = oci_core_subnet.OKE_NodePool_Subnet.id
-    }
-  }
-
-  initial_node_labels {
-    key   = "key"
-    value = "value"
-  }
-
-  ssh_public_key = tls_private_key.public_private_key_pair.public_key_openssh
-
+module "oci-oke" {
+  source                            = "github.com/oracle-quickstart/oci-oke"
+  tenancy_ocid                      = var.tenancy_ocid
+  compartment_ocid                  = var.compartment_ocid
+  availability_domain               = var.availablity_domain_name
+  oke_cluster_name                  = var.cluster_name
+  ssh_public_key                    = tls_private_key.public_private_key_pair.public_key_openssh
+  node_shape                        = var.node_pool_shape
+  node_ocpus                        = var.node_pool_flex_shape_ocpus
+  node_memory                       = var.node_pool_flex_shape_memory
+  node_count                        = var.node_pool_size
+  node_linux_version                = var.linux_os_version
+  k8s_version                       = var.kubernetes_version
+  cluster_kube_config_token_version = var.cluster_kube_config_token_version
+  pods_cidr                         = var.cluster_options_kubernetes_network_config_pods_cidr
+  services_cidr                     = var.cluster_options_kubernetes_network_config_services_cidr
+  use_existing_vcn                  = true
+  vcn_id                            = oci_core_vcn.OKE_ATP_vcn.id
+  is_api_endpoint_subnet_public     = true
+  api_endpoint_subnet_id            = oci_core_subnet.OKE_ATP_api_endpoint_subnet.id
+  is_lb_subnet_public               = true
+  lb_subnet_id                      = oci_core_subnet.OKE_ATP_lb_subnet.id
+  is_nodepool_subnet_public         = true
+  nodepool_subnet_id                = oci_core_subnet.OKE_ATP_nodepool_subnet.id
 }
