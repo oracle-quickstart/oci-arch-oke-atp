@@ -13,7 +13,7 @@ variable "availablity_domain_name" {
 
 variable "release" {
   description = "Reference Architecture Release (OCI Architecture Center)"
-  default     = "1.2"
+  default     = "1.3"
 }
 
 variable "VCN-CIDR" {
