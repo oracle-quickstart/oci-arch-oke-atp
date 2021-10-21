@@ -25,4 +25,5 @@ module "oci-oke" {
   lb_subnet_id                      = oci_core_subnet.OKE_ATP_lb_subnet.id
   is_nodepool_subnet_public         = true
   nodepool_subnet_id                = oci_core_subnet.OKE_ATP_nodepool_subnet.id
+  defined_tags                      = { "${oci_identity_tag_namespace.ArchitectureCenterTagNamespace.name}.${oci_identity_tag.ArchitectureCenterTag.name}" = var.release }
 }
